@@ -121,7 +121,7 @@ class UserController extends Controller
         ]);
         $reset = Password_Reset::where('email', $request->email)->first();
 
-        $link = config('app.url').'/password/reset/'.$reset->token;
+        $link = $request->url .'/password/reset/'.$reset->token;
 
         $result = $user->PasswordResetNotification($link);
 

@@ -24,6 +24,8 @@ Route::post('/user-update-password', 'APIController\UserController@updatePasswor
 
 Route::post('/get-systems', 'APIController\UserController@getSystems')->name('get-all-systems');
 Route::post('/store-system', 'APIController\UserController@storeSystem')->name('store-system');
+
+Route::post('/restore-system', 'APIController\UserController@restoreSystem')->name('restore-system');
 Route::post('/get-history', 'APIController\UserController@getHistory')->name('get-history');
 
 // TODO: Rehan
@@ -52,9 +54,30 @@ Route::post('/customers', 'APIController\InterlocutorController@store');
 Route::put('customers/{id}', 'APIController\InterlocutorController@updateCustomer');
 Route::delete('customers/{id}', 'APIController\InterlocutorController@deleteCustomer');
 Route::get('customersAuth/{id}', 'APIController\InterlocutorController@getCustomerwithAuthUser');
+Route::get('customersOnline/{id}', 'APIController\InterlocutorController@getOnlineCustomers');
+Route::get('getInterlocutorsData', 'APIController\InterlocutorController@getInterlocutorsData');
+Route::get('getRelatedCustomer/{id}', 'APIController\InterlocutorController@getRelatedCustomer');
 // End Interlocutors
+// Alphabets
 Route::post('/alphabets', 'APIController\AlphabetController@store');
 Route::get('/getalphabets', 'APIController\AlphabetController@getAlphabets');
-// Alphabets
 // End Alphabets
+// CSV
+Route::post('/save-csv','APIController\CsvController@import');
+// END CSV
+Route::get('/tagAuth/{id}', 'APIController\TagController@getTagwithAuthUser');
+Route::delete('/tags/{id}', 'APIController\TagController@deleteTag');
+Route::get('/tag/{id}', 'APIController\TagController@getTag');
+Route::post('/save-language-currency', 'APIController\UserController@languageCurrency');
+Route::get('/getsystemId/{id}', 'APIController\UserController@getSystemId');
+// Interlocutor Code
+Route::post('/save-codes','APIController\InterlocutorController@saveCodes');
+Route::get('/getCodes/{id}','APIController\InterlocutorController@getCodes');
+Route::get('/getSingleCodes/{id}','APIController\InterlocutorController@getSingleCode');
+Route::put('codes/{id}', 'APIController\InterlocutorController@updateCode');
+Route::delete('/codes/{id}', 'APIController\InterlocutorController@deleteCode');
+
+
+
+// End Interlocutor Code
 // End-TODO: Rehan

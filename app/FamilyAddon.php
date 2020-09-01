@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserAddon extends Model
+class FamilyAddon extends Model
 {
-    protected $guarded = ['id'];
+    //
 }

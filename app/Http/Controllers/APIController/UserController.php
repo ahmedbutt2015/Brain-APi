@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\APIController;
 
 use App\Http\Controllers\Controller;
+use App\UserAddon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Contracts\Auth\PasswordBroker;
@@ -30,7 +31,7 @@ class UserController extends Controller
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::user();
 
-            // $success['token'] =  $user->createToken('MyApp')-> accessToken; 
+            // $success['token'] =  $user->createToken('MyApp')-> accessToken;
 
             $success['user'] = $user;
 
@@ -119,7 +120,11 @@ class UserController extends Controller
         ]);
         $reset = Password_Reset::where('email', $request->email)->first();
 
+//<<<<<<< HEAD
         $link = config('app.url') . '/password/reset/' . $reset->token;
+//=======
+        $link = $request->url .'/password/reset/'.$reset->token;
+//>>>>>>> 8b1780dd769851c9d204b25dd12a108e64925fc6
 
         $result = $user->PasswordResetNotification($link);
 
@@ -235,8 +240,11 @@ class UserController extends Controller
 
         // set up basic connection using port/door number
         $conn_id = ftp_connect($ftp_server, $ftp_port);
+//asdasd
 
         if ($conn_id != false) {
+//        if (true) {
+
             // login with username and password
             $login_result = ftp_login($conn_id, $ftp_username, $ftp_password);
 
@@ -313,7 +321,8 @@ class UserController extends Controller
                         if ($system) {
                             return response()->json([
                                 'status' => 'Success',
-                                'message' => 'Customers Successfully Added!'
+                                'message' => 'Customers Successfully Added!',
+                                'system_id' => $system->id
                             ]);
                         } else {
                             return response()->json([
@@ -357,7 +366,123 @@ class UserController extends Controller
         }
     }
 
+public function restoreSystem(Request $request)
+    {
 
+        $system = System::find($request->formData['system_id']);
+        $ftp_server = $system->ftp_server;
+        $ftp_username = $system->ftp_username;
+        $ftp_password = $system->ftp_password;
+        $ftp_port = $system->ftp_door;
+        $ftp_folder = $system->ftp_folder;
+
+        // set up basic connection using port/door number
+        $conn_id = ftp_connect($ftp_server, $ftp_port);
+//asdasd
+
+        if ($conn_id != false) {
+//        if (true) {
+
+            // login with username and password
+            $login_result = ftp_login($conn_id, $ftp_username, $ftp_password);
+
+            if ($login_result) {
+
+                $ftp_folder = str_replace('public_html', '', $ftp_folder);
+                //                $ftp_folder = str_replace("world","Peter","Hello world!");
+
+                $ftp = Storage::createFtpDriver([
+                    'host'     => $ftp_server,
+                    'username' => $ftp_username,
+                    'password' => $ftp_password,
+                    'port'     => $ftp_port,
+                    'root'     => $ftp_folder,
+                    //'passive'  => '',
+                    //'ssl'      => '',
+                    //'timeout'  => '30',
+                ]);
+
+                $ftp->delete('/webpack.mix.js');
+                $ftp->delete('/.env');
+                $ftp->delete('/.htaccess');
+                $ftp->delete('/artisan');
+                $ftp->delete('/composer.json');
+                $ftp->delete('/extract.php');
+                $ftp->delete('/index.zip');
+                $ftp->delete('/server.php');
+
+                try {
+                    $ftp->deleteDirectory('/vendor');
+                    $ftp->deleteDirectory('/storage');
+                    $ftp->deleteDirectory('/routes');
+                    $ftp->deleteDirectory('/resources');
+                    $ftp->deleteDirectory('/public');
+                    $ftp->deleteDirectory('/node_modules');
+                    $ftp->deleteDirectory('/database');
+                    $ftp->deleteDirectory('/config');
+                    $ftp->deleteDirectory('/bootstrap');
+                    $ftp->deleteDirectory('/app');
+                } catch (\Exception $e) {
+                }
+
+                $files = collect($ftp->listContents($ftp_folder, false));
+
+                if (true) {
+                    $store = true;
+                    $file_local = Storage::disk('local')->get($system->template . '/index.zip');
+                    $file_ftp = $ftp->put('index.zip', $file_local);
+                    $file_local2 = Storage::disk('local')->get('extract.php');
+                    $file_ftp = $ftp->put('extract.php', $file_local2);
+
+
+                    $payload = file_get_contents($system->url . '/extract.php');
+                    if ($store) {
+
+                        Log::create([
+                            'title' => 'Template: ' . $system->name . ' Re-published!',
+                            'user_id' => $system->user_id,
+                            'description' => 'Customer name: ' . $system->name . ', App Url: ' . $system->url . ', Type: ' . $system->type . ', and template: ' . $system->template . '.'
+                        ]);
+return response()->json([
+                                'status' => 'Success',
+                                'message' => 'Template Re-published',
+                                'system_id' => $system->id
+                            ]);
+
+                    } else {
+                        //Storage Error
+                        return response()->json([
+                            'status' => 'Fail',
+                            'error' => 'Storage Error',
+                            'message' => 'Failed to store data collected from ftp server'
+                        ]);
+                    }
+                } else {
+                    //Content Load error
+                    return response()->json([
+                        'status' => 'Fail',
+                        'error' => 'Empty Directory',
+                        'message' => 'Directory does not exist OR contains no files',
+                        'directory' => $ftp_folder
+                    ]);
+                }
+            } else {
+                //Login error
+                return response()->json([
+                    'status' => 'Fail',
+                    'error' => 'FTP Authentication Error',
+                    'message' => 'Invalid FTP Credentials'
+                ]);
+            }
+        } else {
+            //ftp connection error
+            return response()->json([
+                'status' => 'Fail',
+                'error' => 'Connection Error',
+                'message' => 'FTP Connection could not be established'
+            ]);
+        }
+    }
     public function getHistory(Request $request)
     {
         $histories = Log::where('user_id', $request->id)->orderBy('created_at', 'desc')->get();
@@ -375,5 +500,28 @@ class UserController extends Controller
                 'message' => 'No History'
             ]);
         }
+    }
+    public function languageCurrency(Request $request){
+        return response()->json(
+            [
+                'status'=> 'success'
+            ]
+        );
+    }
+    public function getSystemId($id){
+        $system=System::where('user_id','=',$id)->first();
+        $activeAddons=UserAddon::select('addons.*')->leftJoin('addons','addons.id','=','user_addons.addon_id')->where('system_id',$system->id)->get()->pluck('name');
+        $activeNames = array();
+        foreach ($activeAddons as $value){
+            $activeAddonsNames = explode("for",$value);
+            $activeName = str_replace(' ', '', $activeAddonsNames[1]);
+            $actives = str_replace('?', '', $activeName);
+            $active = str_replace('"}', '', $actives);
+            $activeNames[]=strtolower($active);
+        }
+
+        return response()->json(
+            $activeNames
+);
     }
 }

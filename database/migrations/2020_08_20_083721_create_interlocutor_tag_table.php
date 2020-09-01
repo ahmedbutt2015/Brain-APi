@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateInterlocutorsTable extends Migration
+class CreateInterlocutorTagTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateInterlocutorsTable extends Migration
      */
     public function up()
     {
-        Schema::create('interlocutors', function (Blueprint $table) {
+        Schema::create('interlocutor_tag', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email');
-            $table->string('phone_number');
-            $table->string('image');
+            $table->unsignedBigInteger('interlocutor_id');
+            $table->foreign('interlocutor_id')->references('id')->on('interlocutors');
+            $table->unsignedBigInteger('tag_id');
+            $table->foreign('tag_id')->references('id')->on('tags');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
@@ -32,6 +32,6 @@ class CreateInterlocutorsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('interlocutors');
+        Schema::dropIfExists('interlocutor_tag');
     }
 }

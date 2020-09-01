@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\APIController;
 
+use App\Code;
 use App\Http\Controllers\Controller;
 use App\Interlocutor;
+use App\System;
+use App\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class InterlocutorController extends Controller
 {
@@ -24,16 +29,33 @@ class InterlocutorController extends Controller
     }
     public function store(Request $request)
     {
+
         $customer = new Interlocutor();
+
         $customer->name = $request->name;
         $customer->email = $request->email;
         $customer->phone_number = $request->phone_no;
         $customer->user_id = $request->user_id;
+        $customer->image = $request->file;
         $customer->save();
+
+        foreach ($request->tags as $value) {
+
+            if ($alreadyTag=Tag::where('name', '=', $value)->first()) {
+                $customer->tags()->attach($alreadyTag);
+            }else{
+                $tag = new Tag();
+                $tag->name=$value;
+                $tag->user_id=$request->user_id;
+                $tag->save();
+                $customer->tags()->attach($tag);
+            }
+         }
+
         if ($customer) {
             return response()->json([
                 'message' => 'Customer successfully Added!',
-                'customer' => $customer
+                'customer' => $customer,
             ]);
         } else {
             return response()->json([
@@ -63,6 +85,7 @@ class InterlocutorController extends Controller
             $customer->name = $request->name;
             $customer->email = $request->email;
             $customer->phone_number = $request->phone_no;
+            $customer->image = $request->file;
             $customer->user_id = $request->user_id;
             $customer->save();
 
@@ -92,5 +115,120 @@ class InterlocutorController extends Controller
                 'message' => "Contact Not Found"
             ]);
         }
+    }
+    public function getOnlineCustomers($id){
+        $newID=Crypt::decryptString($id);
+        $customer = Interlocutor::find($newID);
+        $customer->is_online=1;
+        $customer->is_code=1;
+         $customer->save();
+         if ($customer) {
+             return response()->json([
+                 'customer' => $customer
+             ]);
+         }else{
+             return response()->json([
+                 'message'=>"Customer not found"
+             ]);
+         }
+    }
+
+    public  function saveCodes(Request $request){
+     $code= new Code();
+     $code->name=$request->name;
+     $code->url=$request->url;
+     $code->icons_list=$request->icons;
+     $code->colors_list=$request->colors;
+     $code->user_id=$request->user_id;
+     $code->save();
+     if ($code){
+         return response()->json([
+             'message' => 'Customer successfully Added!',
+             'customer' => $code,
+         ]);
+     }else{
+         return response()->json([
+             'message' => 'Something went wrong!'
+         ]);
+     }
+    }
+    public function getCodes($id){
+          $codes=Code::where('user_id','=',$id)->get()->toArray();
+          if ($codes){
+              return response()->json([
+                  'data'=>$codes
+              ]);
+          }else{
+              return response()->json([
+                  'message'=>"Code not found"
+              ]);
+          }
+    }
+    public function getSingleCode($id){
+        $code=Code::find($id);
+        if ($code){
+            return response()->json([
+                'data'=>$code
+            ]);
+        }else{
+            return response()->json([
+                'message'=>'Code not found'
+            ]);
+        }
+    }
+    public function updateCode(Request $request,$id){
+        $code = Code::find($id);
+        if ($code) {
+            $code->name=$request->name;
+            $code->url=$request->url;
+            $code->icons_list=$request->icons;
+            $code->colors_list=$request->colors;
+            $code->user_id=$request->user_id;
+            $code->save();
+
+            return response()->json([
+                'data' => $code,
+                'message' => 'successfully updated!'
+            ]);
+        } else {
+            return response()->json([
+                'message' => "Code Not Found"
+            ]);
+        }
+    }
+    public function deleteCode($id){
+        $code = Code::find($id);
+        if ($code) {
+            $code->delete();
+
+            return response()->json([
+                'message' => 'successfully Deleted!'
+            ]);
+        } else {
+            return response()->json([
+                'message' => "Contact Not Found"
+            ]);
+        }
+    }
+    public function getInterlocutorsData(Request $request){
+
+        $systemData=System::select('data')->where('user_id','=',$request->user_id)->where('url','=',$request->url)->first();
+        if ($systemData) {
+            return response()->json([
+                $systemData
+            ]);
+        }else{
+            return response()->json([
+                'message'=>'No system data available'
+            ]);
+        }
+
+    }
+    public function getRelatedCustomer($id){
+          $tag=Tag::find($id);
+          $interlocutors=$tag->interlocutors;
+          return response()->json([
+              'data'=>$interlocutors
+          ]);
     }
 }

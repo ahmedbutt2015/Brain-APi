@@ -46,4 +46,19 @@ class TagController extends Controller
             ]);
         }
     }
+    public function updateTag(Request $request,$id){
+        $tag=Tag::find($id);
+        if ($tag){
+            $tag->name=$request->name;
+            $tag->user_id=$request->user_id;
+            $tag->save();
+            return response()->json([
+                'message' => 'successfully updated!'
+            ]);
+        }else{
+            return response()->json([
+                'message' => 'Tag not Found!'
+            ]);
+        }
+  }
 }

@@ -28,6 +28,11 @@ Route::post('/store-system', 'APIController\UserController@storeSystem')->name('
 Route::post('/restore-system', 'APIController\UserController@restoreSystem')->name('restore-system');
 Route::post('/get-history', 'APIController\UserController@getHistory')->name('get-history');
 
+//edit system
+Route::put('/update-store-system', 'APIController\UserController@updateStoreSystem')->name('update-store-system');
+
+//end 
+
 // TODO: Rehan
 // Contacts
 Route::get('contacts', 'APIController\ContactsController@getAllContacts');
@@ -40,6 +45,10 @@ Route::delete('contacts/{id}', 'APIController\ContactsController@deleteContact')
 Route::post('families', 'APIController\FamilyController@createFamily');
 Route::get('families', 'APIController\FamilyController@getAllFamilies');
 // END-Family
+
+//edit system 
+Route::get('editSystem/{id}', 'APIController\FamilyController@getEditSystem');
+//end edit system 
 
 // Addon
 Route::post('addons', 'APIController\AddonController@createAddon');
@@ -55,6 +64,7 @@ Route::put('customers/{id}', 'APIController\InterlocutorController@updateCustome
 Route::delete('customers/{id}', 'APIController\InterlocutorController@deleteCustomer');
 Route::get('customersAuth/{id}', 'APIController\InterlocutorController@getCustomerwithAuthUser');
 Route::get('customersOnline/{id}', 'APIController\InterlocutorController@getOnlineCustomers');
+Route::post('customersOnlineHash', 'APIController\InterlocutorController@getOnlineCustomersHash');
 Route::get('getInterlocutorsData', 'APIController\InterlocutorController@getInterlocutorsData');
 Route::get('getRelatedCustomer/{id}', 'APIController\InterlocutorController@getRelatedCustomer');
 // End Interlocutors
@@ -68,6 +78,7 @@ Route::post('/save-csv','APIController\CsvController@import');
 Route::get('/tagAuth/{id}', 'APIController\TagController@getTagwithAuthUser');
 Route::delete('/tags/{id}', 'APIController\TagController@deleteTag');
 Route::get('/tag/{id}', 'APIController\TagController@getTag');
+Route::put('tag/{id}', 'APIController\TagController@updateTag');
 Route::post('/save-language-currency', 'APIController\UserController@languageCurrency');
 Route::get('/getsystemId/{id}', 'APIController\UserController@getSystemId');
 // Interlocutor Code
@@ -77,7 +88,8 @@ Route::get('/getSingleCodes/{id}','APIController\InterlocutorController@getSingl
 Route::put('codes/{id}', 'APIController\InterlocutorController@updateCode');
 Route::delete('/codes/{id}', 'APIController\InterlocutorController@deleteCode');
 
-
+//get general setting addons for createing new system
+Route::get('/general-Setting', 'APIController\FamilyController@generalSetting');
 
 // End Interlocutor Code
 // End-TODO: Rehan

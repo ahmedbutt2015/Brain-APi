@@ -5,8 +5,8 @@ namespace App\Http\Controllers\APIController;
 use App\Code;
 use App\Http\Controllers\Controller;
 use App\Interlocutor;
-use App\System;
 use App\Tag;
+use App\System;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -35,8 +35,8 @@ class InterlocutorController extends Controller
         $customer->name = $request->name;
         $customer->email = $request->email;
         $customer->phone_number = $request->phone_no;
-        $customer->user_id = $request->user_id;
         $customer->image = $request->file;
+        $customer->user_id = $request->user_id;
         $customer->save();
 
         foreach ($request->tags as $value) {
@@ -117,8 +117,8 @@ class InterlocutorController extends Controller
         }
     }
     public function getOnlineCustomers($id){
-        $newID=Crypt::decryptString($id);
-        $customer = Interlocutor::find($newID);
+        
+        $customer = Interlocutor::where('hashCode','=',$id)->first();
         $customer->is_online=1;
         $customer->is_code=1;
          $customer->save();
@@ -214,9 +214,9 @@ class InterlocutorController extends Controller
 
         $systemData=System::select('data')->where('user_id','=',$request->user_id)->where('url','=',$request->url)->first();
         if ($systemData) {
-            return response()->json([
+            return response()->json(
                 $systemData
-            ]);
+            );
         }else{
             return response()->json([
                 'message'=>'No system data available'
@@ -225,10 +225,38 @@ class InterlocutorController extends Controller
 
     }
     public function getRelatedCustomer($id){
-          $tag=Tag::find($id);
-          $interlocutors=$tag->interlocutors;
-          return response()->json([
-              'data'=>$interlocutors
-          ]);
+        $tag=Tag::find($id);
+        $interlocutors=$tag->interlocutors;
+        return response()->json([
+            'data'=>$interlocutors
+        ]);
+  }
+  public function getOnlineCustomersHash(Request $request){
+        
+    $customer = Interlocutor::where('hashCode','=',$request->encryptedData)->first();
+        $code=Code::find($request->id);
+    if($code->colors_list==="Green Color"){
+        $customer->is_online=1;
+        $customer->is_code=1;
+        $customer->save();        
+    }elseif($code->colors_list==="Blue Color"){
+        $customer->is_online=2;
+        $customer->is_code=2; 
+        $customer->save();
+    }elseif($code->colors_list==="Red Color"){
+        $customer->is_online=3;
+        $customer->is_code=3;
+        $customer->save(); 
     }
+
+     if ($customer) {
+         return response()->json([
+             'customer' => $customer
+         ]);
+     }else{
+         return response()->json([
+             'message'=>"Customer not found"
+         ]);
+     }
+  }
 }

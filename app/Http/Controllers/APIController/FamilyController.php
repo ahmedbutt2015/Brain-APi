@@ -10,7 +10,14 @@ use Illuminate\Http\Request;
 use App\Addon;
 class FamilyController extends Controller
 {
-
+   public function generalSetting(){
+    $families=Family::with('addons')->get();
+    return response()->json(
+        [
+            'data'=>$families,
+        ]
+    );
+   }
     public function getAllFamilies(Request $request){
         $families=Family::with('addons','addons.useraddons')->get();
         $active_addons = UserAddon::where('system_id',$request->system_id)->get()->pluck('addon_id')->toArray();
@@ -37,8 +44,10 @@ class FamilyController extends Controller
                 'activeNames'=>$activeNames
             ]
         );
-
-
+    }
+    public function getEditSystem($id){
+     $editSystem =  System::find($id);
+     return response()->json($editSystem);
     }
     public function createFamily(Request $request)
     {

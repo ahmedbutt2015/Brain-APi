@@ -49,6 +49,20 @@ class FamilyController extends Controller
      $editSystem =  System::find($id);
      return response()->json($editSystem);
     }
+        public function getDeleteSystem($id){
+        $System =  System::find($id);
+        if ($System) {
+            $System->delete();
+
+            return response()->json([
+                'message'=>'successfully Deleted!'
+            ]);
+        }else{
+            return response()->json([
+                'message' => "Contact Not Found"
+            ]);
+        }
+       }
     public function createFamily(Request $request)
     {
          $family=new Family();

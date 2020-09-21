@@ -35,8 +35,9 @@ class InterlocutorController extends Controller
         $customer->name = $request->name;
         $customer->email = $request->email;
         $customer->phone_number = $request->phone_no;
-        $customer->image = $request->file;
         $customer->user_id = $request->user_id;
+                $customer->image = $request->file;
+
         $customer->save();
 
         foreach ($request->tags as $value) {
@@ -68,9 +69,17 @@ class InterlocutorController extends Controller
     public function getCustomer($id)
     {
         $customer = Interlocutor::find($id);
+     $editTags = DB::table('interlocutor_tag')->where('interlocutor_id', $id)->get();
+     
+      $editTagData = array();
+       foreach($editTags as $e){
+           $tagsData = Tag::where('id',$e->tag_id)->get(); 
+          $editTagData[]=$tagsData[0];      
+       }
         if ($customer) {
             return response()->json([
-                'data' => $customer
+                'data' => $customer,
+                'editTags'=>$editTagData
             ]);
         } else {
             return response()->json([
@@ -79,18 +88,38 @@ class InterlocutorController extends Controller
         }
     }
     public function updateCustomer(Request $request, $id)
-    {
+    {  
         $customer = Interlocutor::find($id);
         if ($customer) {
             $customer->name = $request->name;
             $customer->email = $request->email;
             $customer->phone_number = $request->phone_no;
-            $customer->image = $request->file;
+             $customer->image = $request->file;
             $customer->user_id = $request->user_id;
             $customer->save();
-
+            DB::table('interlocutor_tag')->where('interlocutor_id', $id)->delete();
+                    foreach ($request->tags as $value) {
+               
+            if ($alreadyTag=Tag::where('name', '=', $value)->first()) {
+                $customer->tags()->attach($alreadyTag);
+            }else{
+                $tag = new Tag();
+                $tag->name=$value;
+                $tag->user_id=$request->user_id;
+                $tag->save();
+                $customer->tags()->attach($tag);
+            }
+         }
+                $editTags = DB::table('interlocutor_tag')->where('interlocutor_id', $id)->get();
+     
+      $editTagData = array();
+       foreach($editTags as $e){
+           $tagsData = Tag::where('id',$e->tag_id)->get(); 
+          $editTagData[]=$tagsData[0];      
+       }
             return response()->json([
                 'data' => $customer,
+                'editTags'=>$editTagData,
                 'message' => 'successfully updated!'
             ]);
         } else {
@@ -117,8 +146,8 @@ class InterlocutorController extends Controller
         }
     }
     public function getOnlineCustomers($id){
-        
-        $customer = Interlocutor::where('hashCode','=',$id)->first();
+        $newID=Crypt::decryptString($id);
+        $customer = Interlocutor::find($newID);
         $customer->is_online=1;
         $customer->is_code=1;
          $customer->save();
@@ -211,6 +240,7 @@ class InterlocutorController extends Controller
         }
     }
     public function getInterlocutorsData(Request $request){
+           
 
         $systemData=System::select('data')->where('user_id','=',$request->user_id)->where('url','=',$request->url)->first();
         if ($systemData) {

@@ -49,6 +49,9 @@ Route::get('families', 'APIController\FamilyController@getAllFamilies');
 //edit system 
 Route::get('editSystem/{id}', 'APIController\FamilyController@getEditSystem');
 //end edit system 
+//delete system 
+Route::delete('deleteSystem/{id}', 'APIController\FamilyController@getDeleteSystem');
+//end delete system 
 
 // Addon
 Route::post('addons', 'APIController\AddonController@createAddon');
